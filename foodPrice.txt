@@ -1,0 +1,27 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log("===============================in food price=============================")
+    app.log(app.context.steps['showmenu'])
+    let amt = app.context.steps['showmenu']
+    let amount = amt.split("/")[0]
+    app.log(amount, "The price is : ")
+
+
+    let quantity = app.context.steps['quantity']
+    app.log(quantity, "The required quantity is :")
+
+    let totalPrice = amount * quantity
+    app.log(totalPrice, "The total price is : ")
+    app.sendTextMessage("The total price for ordered food is " + totalPrice).then(() => {
+        app.sendQuickReplies({
+            title: "Click confirm to go further",
+            options: [
+                {
+                    title: "Confirm",
+                    text: totalPrice
+                }
+            ]
+        })
+    })
+    return resolve();
+});

@@ -1,0 +1,30 @@
+return new Promise(async resolve => {
+    // Your logic goes here
+    app.log("======================in total amount====================")
+    app.log(app.context.steps['test'],"The total amount for ordered food is : ")
+    let foodAmt = app.context.steps['test']
+    let food = 0;
+    food = parseInt(foodAmt)
+    app.log(food,"the food amt is :")
+    //app.sendTextMessage(totalAmt)
+
+await
+    app.log(app.context.steps['displayseats'],"the output is:")
+    //let option = app.log(app.context.steps['displayseats'])
+    //app.log(option,"the op is:")
+    let values = JSON.parse(app.context.steps['displayseats'])
+    app.log(values,"the json format is :")
+    let numOfSeats = parseInt(values.event.data.Numofseats)
+    let ticketPrice = parseInt(values.event.data.TicketPrice)
+    let ticket = ticketPrice * numOfSeats
+    app.log(ticket)
+    //app.sendTextMessage(ticketPrice)
+    if (foodAmt == undefined){
+        app.log("in if")
+        food=0
+    }
+    let totalAmount = food + ticket
+    app.log(totalAmount, "The total amount for ticket and food is :")
+    app.sendTextMessage("The total amount is :  ₹"+ totalAmount)
+    return resolve();
+});

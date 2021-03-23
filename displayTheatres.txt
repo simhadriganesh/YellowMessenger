@@ -1,0 +1,72 @@
+return new Promise(resolve => {
+    app.log("=======================in display theatres==========================")
+
+    let option = app.data.message
+    let opt = option.toLowerCase()
+    app.log(opt, "the option is :")
+    let theatreArr = [];
+
+
+    app.dataStore.search({
+        table: 'theatres_db',
+        body: {
+            "query": {
+                "match_all": {}
+            },
+            size: '100'
+        }
+    }).then((result) => {
+        app.log('==================================result========================================')
+        app.log(result)
+        let data = result.hits.hits;
+        app.log(data, "data")
+        let theatredetails;
+
+        data.forEach((item) => {
+            let movieName = item._source.movie_name
+            app.log(movieName, "the movie name is ------->")
+            //if (loc.toLowerCase() == option.toLowerCase()) {
+            if (opt.toLowerCase().includes(movieName.toLowerCase())) {
+                app.memory.set("movie", movieName)
+                theatredetails = JSON.parse(item._source.list_of_theatres);
+                app.log(theatredetails, "theatredetails is : ")
+                app.memory.set("theatreDetails",theatredetails)
+                let count = 0;
+                theatredetails.forEach((detail) => {
+                    app.log(detail.TheatreName, "The name is : ")
+                    count++
+                    theatreArr.push(
+                        {
+                            title: `<strong> Theatre Name : ${detail.TheatreName} </strong> `,
+                            image: detail.img,
+                            form: [{
+                                header: ` `,
+                                content: [{
+                                    subheader: ``,
+                                    description: `<strong> Address </strong> : ${detail.Address}`
+                                }]
+                            }],
+                            actions: [{
+                                title: `Select`,
+                                //title: `Select ${" " + count}`,
+                                text: detail.TheatreName
+                            }]
+                        }
+                    )
+                })
+                app.setStep("displayTheatres2", theatreArr)
+                app.sendTextMessage("Please find the list of theatres available for " + movieName + " movie ")
+                app.sendCards(theatreArr).then(() => {
+                    return resolve();
+                })
+            }
+        })
+    }).catch((err) => {
+        app.log(err, "error is : ")
+        app.sendTextMessage(err)
+    })
+
+    //resolve()
+
+});
+

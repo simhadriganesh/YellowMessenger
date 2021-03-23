@@ -1,0 +1,22 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log("======================in common start=========================")
+    app.sendQuickReplies({
+        title: "Please select the below options to continue...",
+        options: [
+            {
+                title: "Book Movie",
+                text: "Book Movie"
+            },
+            {
+                title: "Upcoming Movies",
+                text: "Upcoming Movies"
+            },
+            {
+                title: "Offers and exclusives",
+                text: "exclusives"
+            }
+        ]
+    })
+    resolve();
+});

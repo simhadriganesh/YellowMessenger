@@ -1,0 +1,111 @@
+return new Promise(resolve => {
+    app.log("===================in locking seats=======================")
+    let detail = JSON.parse(app.context.steps['displayseats'])
+    let seatNumbers = detail.event.data.seats.split(',')
+    app.log(seatNumbers, "the seat numbers are :")
+    let n, n1, n2, n3, n4, n5, n6, n7, n8, n9
+    let s = [], s1 = [], s2 = [], s3 = [], s4 = [], s5 = [], s6 = [], s7 = [], s8 = [],s9 = []
+     seatNumbers.forEach((item) => {
+        if (item.includes('A')) {
+            n = item.split('A')[1]
+            s.push(n)
+            app.log(n, "the seat number is :")
+        }
+        else if (item.includes('B')) {
+            n1 = parseInt(item.split('B')[1]) + parseInt(12)
+            s1.push(n1)
+            app.log(n1, "the seat number1 is :")
+        }
+        else if (item.includes('C')) {
+            n2 = parseInt(item.split('C')[1]) + parseInt(24)
+            s2.push(n2)
+            app.log(n2, "the seat number2 is :")
+        }
+        else if (item.includes('D')) {
+            n3 = parseInt(item.split('D')[1]) + parseInt(36)
+            s3.push(n3)
+            app.log(n3, "the seat number3 is :")
+        }
+        else if (item.includes('E')) {
+            n4 = parseInt(item.split('E')[1]) + parseInt(48)
+            s4.push(n4)
+            app.log(n4, "the seat number4 is :")
+        }
+        else if (item.includes('F')) {
+            n5 = parseInt(item.split('F')[1]) + parseInt(60)
+            s5.push(n5)
+            app.log(n5, "the seat number5 is :")
+        }
+        else if (item.includes('G')) {
+            n6 = parseInt(item.split('G')[1]) + parseInt(72)
+            s6.push(n6)
+            app.log(n6, "the seat number6 is :")
+        }
+        else if (item.includes('H')) {
+            n7 = parseInt(item.split('H')[1]) + parseInt(84)
+            s7.push(n7)
+            app.log(n7, "the seat number7 is :")
+        }
+        else if (item.includes('I')) {
+            n8 = parseInt(item.split('I')[1]) + parseInt(96)
+            s8.push(n8)
+            app.log(n8, "the seat number8 is :")
+        }
+        else if (item.includes('J')) {
+            n9 = parseInt(item.split('J')[1]) + parseInt(108)
+            s9.push(n9)
+            app.log(n9, "the seat number9 is :")
+            app.log(s9, "the seats N9 is :")
+        }
+    })
+    let numbers = [s,s1,s2,s3,s4,s5,s6,s7,s8, s9]
+    let selectedSeatNumbers = []
+    let flag = false
+    numbers.forEach((item) => {
+        item.forEach((item1)=>{
+            if (item1 != null) {
+                selectedSeatNumbers.push(parseInt(item1))
+                flag = true
+            }
+        })
+        
+    })
+    app.log(selectedSeatNumbers, "the selected seats are : ")
+    if (flag == true) {
+        app.dataStore.search({
+            table: 'available_seats_db',
+            body: {
+                "query": {
+                    "match": {
+                        "movie_id": {
+                            "query": '1'
+                        }
+                    }
+                },
+            }
+        }).then((result)=>{
+            app.log(result,"the result is : ")
+
+            if(result && result.hits && result.hits.hits && result.hits.hits.length > 0){
+                let id = result.hits.hits[0]._id
+                app.log(id ,"the id is : ")
+                try{
+                    let dbQuery ={
+                        table: 'available_seats_db',
+                        record:{
+                            _id : id,
+                            booked_seats:selectedSeatNumbers
+                        }
+                    }
+                     app.dataStore.update(dbQuery);
+                    resolve("updated successfully")
+                } catch(err){
+                    app.log(err)
+                }
+            }
+        }).catch(err=>{
+            app.log(err)
+        })
+    }
+    resolve();
+});

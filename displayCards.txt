@@ -1,0 +1,119 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log("==========================in display cards=============================")
+    let loginHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#submit").click(function () {
+                if ($("#cardNumber").val()) {
+                    window.parent.postMessage(JSON.stringify({
+                        event_code: 'ym-client-event', data: JSON.stringify({
+                            event: {
+                                code: "auth",
+                                data: {
+                                    CardNumber: $("#cardNumber").val()               
+                                }
+                            }
+                        })
+                    }), '*');
+                    $('#custom :input').attr('disabled', 'disabled');
+                    $('#custom').fadeTo("slow", 0.15, function () {
+                        $(this).find(':input').attr('disabled', 'disabled');
+                        $(this).find('label').css('cursor', 'default');
+                    });
+                }
+            })
+        })
+    </script>
+    <style>
+        @media (max-width: 479px) {
+            .uniglobeBg {
+                background-size: auto 265px;
+            }
+        }
+.bodyBg{
+     text-align: center;
+}
+    </style>
+</head>
+<body onload="onLoaderFunc()"">
+    <!---- <h4 class="title">Card detail</h4> ---->
+    <div class="container">
+        <div class="w3ls-reg">
+             <!-- input fields -->
+            <div class="form-body">
+    <!-- Card Number -->
+        <label for="Card Number"> Card Number :</label>
+    <input type="text" id="cardNumber" class="card-number" placeholder="Card Number">
+ 
+    <!-- Date Field -->
+    <div class="date-field">
+      <div class="month">
+      <label for="Month"> Month :</label>
+        <select id="Month" name="Month">
+          <option value="january">January</option>
+          <option value="february">February</option>
+          <option value="march">March</option>
+          <option value="april">April</option>
+          <option value="may">May</option>
+          <option value="june">June</option>
+          <option value="july">July</option>
+          <option value="august">August</option>
+          <option value="september">September</option>
+          <option value="october">October</option>
+          <option value="november">November</option>
+          <option value="december">December</option>
+        </select>
+      </div>
+      <div class="year">
+      <label for="year"> year:</label>
+        <select id="year" name="Year">
+          <option value="2016">2016</option>
+          <option value="2017">2017</option>
+          <option value="2018">2018</option>
+          <option value="2019">2019</option>
+          <option value="2020">2020</option>
+          <option value="2021">2021</option>
+          <option value="2022">2022</option>
+          <option value="2023">2023</option>
+          <option value="2024">2024</option>
+        </select>
+      </div>
+    </div>
+ 
+    <!-- Card Verification Field -->
+    <div class="card-verification">
+      <div class="cvv-input">
+        <label for="CVV"> CVV :</label>
+        <input type="text" placeholder="CVV">
+      </div>
+      <div class="cvv-details">
+        <p>3 or 4 digits usually found <br> on the signature strip</p>
+      </div>
+    </div>
+ 
+    <!-- Buttons -->
+    <input type="submit" id="submit">
+    <!--- button type="submit" class="paypal-btn"><a href="#">Pay With</a></button ---->
+  </div>
+        </div>
+    </div>
+</body>
+</html>`
+    let buf = Buffer.from(loginHtml, "utf8");
+    app.uploadFile(buf, "file.html").then((res) => {
+        app.log(res, "html file link");
+        app.sendWebView('', res, 250).then((results) => {
+            app.log(results, 'result');
+            return resolve();
+        });
+    });
+});

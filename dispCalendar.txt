@@ -1,0 +1,65 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log("==========================in display calendar=============================")
+    let loginHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#submit").click(function () {
+                if ($("#start").val()) {
+                    window.parent.postMessage(JSON.stringify({
+                        event_code: 'ym-client-event', data: JSON.stringify({
+                            event: {
+                                code: "auth",
+                                data: {
+                                    date: $("#start").val()                          
+                                }
+                            }
+                        })
+                    }), '*');
+                    $('#custom :input').attr('disabled', 'disabled');
+                    $('#custom').fadeTo("slow", 0.15, function () {
+                        $(this).find(':input').attr('disabled', 'disabled');
+                        $(this).find('label').css('cursor', 'default');
+                    });
+                }
+            })
+        })
+    </script>
+    <style>
+        @media (max-width: 479px) {
+            .uniglobeBg {
+                background-size: auto 265px;
+            }
+        }
+.bodyBg{
+     text-align: center;
+}
+    </style>
+</head>
+<body style="background-color:#FFFFF">
+    <!-- <div class="uniglobeBg">hi</div> -->
+    <div class="bodyBg">
+     <label for="birthday">Select the booking date:</label>
+     <input type="date" id="start" min="2021-01-01" max="2021-02-28">
+     <input type="submit" id="submit">
+    </div>
+</body>
+</html>`
+    let buf = Buffer.from(loginHtml, "utf8");
+    app.uploadFile(buf, "file.html").then((res) => {
+        app.log(res, "html file link");
+        app.sendWebView('', res, 60).then((results) => {
+           app.setStep("calander", loginHtml )
+            app.log(results, 'result');
+            return resolve();
+        });
+    });
+});

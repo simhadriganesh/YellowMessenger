@@ -1,0 +1,26 @@
+return new Promise(resolve => {
+    app.log("======================in final message=======================")
+    app.log(app.context.steps['displayseats'],"the details are:")
+    let detail = app.context.steps['displayseats']
+    let details = JSON.parse(detail)
+    let name = details.event.data.Name
+    let numOfSeats = details.event.data.Numofseats
+    let seatNumbers = details.event.data.seats
+    app.log(name)
+    app.log(numOfSeats)
+    app.log(seatNumbers)
+    let movieName = app.context.steps['displaymovies']
+    app.log(movieName, "the  movie details are:")
+    let data1 = JSON.parse(app.context.steps['calendar'])
+    let date = data1.event.data.date
+    app.log(date)
+    let time = app.context.steps['displayshowtimings']
+    app.log(time)
+    let theatre = app.context.steps['theatre']
+    let location = app.context.steps['location']
+    app.log(theatre)
+
+
+    app.sendTextMessage('Hi ' + name +"\n"+ numOfSeats + " seats booked for " + movieName + " on " + date + " , " + time +" at "+ theatre + " : "+ location +"\nSeat numbers : " + seatNumbers)
+    resolve();
+});

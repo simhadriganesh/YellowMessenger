@@ -1,0 +1,11 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log("==================in details display================")
+    let data =app.data.message
+    app.log(data,"the data is : ")
+    if (data == "exclusives"){
+        app.log(data,"in if")
+        app.triggerIntent('offersandexclusives')
+    }
+    resolve();
+});

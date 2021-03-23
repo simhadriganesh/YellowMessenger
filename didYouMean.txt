@@ -1,0 +1,5 @@
+return new Promise(resolve => {
+    app.log("====================In did you mean========================")
+    app.sendTextMessage("I'm sorry, I didn't understand what you asked. Can you please rephrase that?")
+    resolve();
+});

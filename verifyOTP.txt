@@ -1,0 +1,51 @@
+return new Promise(async resolve => {
+    // Your logic goes here
+    app.log("=====verify otp--------")
+    let detail = app.context.steps['displayseats']
+    let details = JSON.parse(detail)
+    let mobileNumber = details.event.data.mobileNumber
+    let otp = app.data.message
+    app.log(otp, 'the otp is :')
+    let authenticated = false;
+    const verifyResponse =await app.verifyOtp(otp)
+    app.log(verifyResponse, 'the verifyResponse is :')
+    if (verifyResponse && verifyResponse.success) {
+        authenticated = true;
+        app.log("verified")
+    }
+    if(authenticated){
+        app.log("authenitcated")
+        resolve();
+    }
+    else {
+        if(otp.match(/\b(resend otp|resend)\b/gi)){
+        //app.sendTextMessage("Please enter the OTP that has been sent to your mobile number " + mobileNumber)
+           // app.sendOtp(mobileNumber).then((otp) => {
+                app.log(otp, "here otp")
+                app.setStep(otp,"resend");
+            //});
+          resolve();  
+        }
+
+ else {
+            // Invalid name
+            app.log("otpinvalid");
+            //  app.sendTextMessage(`Invalid name. Please enter name in the format "first name last name" .`);
+            //  return resolve();
+            resolve({
+                success: false,
+                customHandler: () => {
+                    if (app.prediction && app.prediction.intent && app.prediction.confidence > 0.8) {
+                        return app.triggerIntent(app.prediction.intent);
+                    }
+                    else {
+                        return app.sendTextMessage(`Invalid otp. Please enter a valid otp .`);
+                    }
+                }
+            });
+        }
+        
+    }  
+
+    //resolve();
+});

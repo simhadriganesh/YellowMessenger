@@ -1,0 +1,74 @@
+
+//app.log(app.profile,"the profile options are : ")
+// app.executeFunction("sendOtpYm");
+// app.log("sendotp")
+app.customOptions = {
+    'minConfidence': 0.85,
+    'contextConfidence': 0.9,
+    'excludeParamsForSwitching': ['default','welcome', 'location', 'displaymovies', 'theatre', 'language', 'displayupcomingmovies', 'test', 'response']
+}
+// app.memory.get('targetLanguage').then((target_Language)=>{
+//     app.log(target_Language,"target_language")
+//     app.customOptions = {
+//         'minConfidence': 0.85,
+//         'contextConfidence': 0.9,
+//         'excludeParamsForSwitching': ['welcome', 'location', 'displaymovies', 'theatre', 'language', 'displayupcomingmovies', 'test', 'response'],
+//         'target_Language' : target_Language,
+//         'i18n' : true 
+//     }
+//     return app.start(app.customOptions);
+// }).catch((err)=>{
+let today = new Date();
+let newdate = new Date(today);
+
+newdate.setDate(newdate.getDate() + 10);
+let dd = today.getDate();
+
+let mm = today.getMonth() + 1;
+let y = today.getFullYear();
+let dd1 = newdate.getDate();
+
+let mm1 = newdate.getMonth() + 1;
+let y1 = newdate.getFullYear();
+
+// app.log(products)
+
+let someFormattedDate = y + '-' + mm + '-' + dd;
+app.log(someFormattedDate)
+app.dataStore.search({
+    table: 'available_seats_db',
+    body: {
+        "query": {    
+            "match_all": {}
+        }
+    }
+}).then((res)=>{
+    let res_Info = res.hits.hits;
+    
+    // app.log(res_Info, "the theatre_info")
+    app.log(res_Info.length)
+    res_Info.forEach((data)=>{
+        // app.log(someFormattedDate.toString())
+        
+        let dt = new Date(data._source.date)
+        // let dat = dt.split('T')[0];
+
+        let dt1=new Date(someFormattedDate)
+        if (dt<dt1){
+
+            app.log('to be deleted')
+            app.dataStore.delete({
+                table: 'available_seats_db',
+                _id: data._id
+            }).then((res)=>{
+                app.log('past record deleted')
+            })
+        }
+    })
+})
+// if(){
+    
+// }
+return app.start(app.customOptions);
+//})
+

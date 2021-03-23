@@ -1,0 +1,843 @@
+    return new Promise(resolve => {
+    // Your logic goes here
+    app.log("======================in display seats====================")
+    // let bookedSeats=[];
+    let flag=1
+        app.log(app.data.message+"showwwwwwwwww time")
+    let sh=app.data.message;
+    app.memory.set('showtime', app.data.message)
+    app.memory.get('selectedMovie').then((moviename)=>{
+        app.log(moviename)
+        
+        app.dataStore.search({
+            table: 'theatres_db',
+            body: {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "match": {
+                                    "movie_name": moviename
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        }).then((movieID) => {
+            let mv=movieID.hits.hits;
+            mv.forEach((mv1)=>{
+                app.log('Movie IDDDDDDDDDD=>'+mv1._source.movie_id);
+
+  
+    app.memory.get('date').then((dt)=>{
+
+    
+    app.dataStore.search({
+        table: 'available_seats_db',
+        body: {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "match": {
+                                "theatre_id": 1
+                            }
+                        },
+                        {
+                            "match": {
+                                "movie_id": mv1._source.movie_id
+                            }
+                        },
+                        {
+                            "match": {
+                                "showtime": sh
+                            }
+                        },
+                        {
+                            "match": {
+                                "date":dt
+                            }
+                        }
+                        
+                    ]
+                }
+            }
+        }
+    }).then((theatre_details) => {
+        // app.log(lead_gen, 'lead gen results');
+        // app.log(category_details)
+        let theatre_Info = theatre_details.hits.hits;
+        let bookedSeats = []
+        app.log(theatre_Info, "the theatre_info")
+        app.log(theatre_Info.length)
+        if (theatre_Info.length==0){
+            flag=2
+        }
+        else{
+        theatre_Info.forEach((data) => {
+            app.log(data._source.booked_seats);
+            let showt = data._source.showtime;
+            if (showt == sh){
+                bookedSeats = bookedSeats.concat(data._source.booked_seats);
+            }
+            
+            app.log(showt,"show time from DB")
+            app.log(typeof (data._source.showtime))
+            app.log()
+            
+
+            app.log( bookedSeats ,'outside')
+            app.log(typeof(bookedSeats), 'outside type is : ')
+        })
+        }
+            if(bookedSeats.length==120){
+                app.sendQuickReplies({
+                    title:'HouseFull for this SHOW..choose some other shows',
+                    options:[{
+                        title:'More SHOWS',
+                        text:'1'
+                    }]
+                })
+            }
+            else{
+            let loginHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            $("#getValue").click(function () {
+                
+                    window.parent.postMessage(JSON.stringify({
+                        event_code: 'ym-client-event', data: JSON.stringify({
+                            event: {
+                                code: "auth",
+                                data:{
+                                    Name : $("#Username").val(),
+                                    Numofseats : $("#Numseats").val(),
+                                    seats : $("#seatsDisplay").val() , 
+                                    TicketPrice : "150",
+                                    selectedSeats : $("#Numseats").val(),
+                                    mobileNumber : $("#mobileNumber").val()
+                                     
+                                }  
+                            }
+                        })
+                    }), '*');
+                    $('#custom :input').attr('disabled', 'disabled');
+                    $('#custom').fadeTo("slow", 0.15, function () {
+                        $(this).find(':input').attr('disabled', 'disabled');
+                        $(this).find('label').css('cursor', 'default');
+                    });
+                
+            })
+        })
+    </script>
+    <style>
+        @media (max-width: 379px) {
+            .uniglobeBg {
+                background-size: auto 265px;
+            }
+            
+        }
+    </style>
+</head>
+<body onload="onLoaderFunc()"">
+    <h1></h1>
+                                    <div class="container">
+
+                                        <div class="w3ls-reg">
+                                            <!-- input fields -->
+            <div class="inputForm">
+                                                <h2></h2>
+                                                <label for="ticketPrice" id="price"> Ticket Price: ₹150 </label>
+                                                <div class="mr_agilemain">
+                                                    <div class="agileits-left">
+                                                        <label> Name
+                            <span>*</span>
+                                                        </label>
+                                                        <input type="text" id="Username" required>
+                    </div>
+                                                        <div class="agileits-right">
+                                                            <label> Number of Seats
+                            <span>*</span>
+                                                            </label>
+                                                            <input type="number" id="Numseats" required min="1" max="120">\n
+                    </div>
+                                                        <div class="agileits-left">
+                                                            <label>Mobile Number
+                            <span>*</span>
+                                                            </label>
+                                                            <input type="tel" id="mobileNumber" required maxlength="10">
+                    </div>
+                                                        </div>
+                                                        <button onclick="takeData()">Start Selecting</button>
+                                                    </div>
+                                                    <!-- //input fields -->
+            <!-- seat availabilty list -->
+            <ul class="seat_w3ls">
+                                                      
+                                                    </ul>
+                                                    <!-- seat availabilty list -->
+            <!-- seat layout -->
+            <div class="seatStructure txt-center" style="overflow-x:auto;">
+                                                        <table id="seatsBlock">
+                                                            <p id="notification"></p>
+                                                            <tr>
+                                                                <td></td>
+                                                                <td>1</td>
+                                                                <td>2</td>
+                                                                <td>3</td>
+                                                                <td>4</td>
+                                                                <td>5</td>
+                                                                <td></td>
+                                                                <td>6</td>
+                                                                <td>7</td>
+                                                                <td>8</td>
+                                                                <td>9</td>
+                                                                <td>10</td>
+                                                                <td>11</td>
+                                                                <td>12</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td>A</td>
+                                                                <td>
+                                                                    <input type="checkbox" class="seats" id = '1' value="A1" >
+                        </td>
+                                                                    <td>
+                                                                        <input type="checkbox" class="seats" id = '2' value="A2">
+                        </td>
+                                                                        <td>
+                                                                            <input type="checkbox" class="seats" id = '3' value="A3">
+                        </td>
+                                                                            <td>
+                                                                                <input type="checkbox" class="seats" id = '4' value="A4">
+                        </td>
+                                                                                <td>
+                                                                                    <input type="checkbox" class="seats" id = '5' value="A5">
+                        </td>
+                                                                                    <td class="seatGap"></td>
+                                                                                    <td>
+                                                                                        <input type="checkbox" class="seats" id = '6' value="A6">
+                        </td>
+                                                                                        <td>
+                                                                                            <input type="checkbox" class="seats" id = '7' value="A7">
+                        </td>
+                                                                                            <td>
+                                                                                                <input type="checkbox" class="seats" id = '8' value="A8">
+                        </td>
+                                                                                                <td>
+                                                                                                    <input type="checkbox" class="seats" id = '9' value="A9">
+                        </td>
+                                                                                                    <td>
+                                                                                                        <input type="checkbox" class="seats" id = '10' value="A10">
+                        </td>
+                                                                                                        <td>
+                                                                                                            <input type="checkbox" class="seats" id = '11' value="A11">
+                        </td>
+                                                                                                            <td>
+                                                                                                                <input type="checkbox" class="seats" id = '12' value="A12">
+                        </td>
+                    </tr>
+
+                                                                                                            <tr>
+                                                                                                                <td>B</td>
+                                                                                                                <td>
+                                                                                                                    <input type="checkbox" class="seats" id = '13' value="B1">
+                        </td>
+                                                                                                                    <td>
+                                                                                                                        <input type="checkbox" class="seats" id = '14' value="B2">
+                        </td>
+                                                                                                                        <td>
+                                                                                                                            <input type="checkbox" class="seats" id = '15' value="B3">
+                        </td>
+                                                                                                                            <td>
+                                                                                                                                <input type="checkbox" class="seats" id = '16' value="B4">
+                        </td>
+                                                                                                                                <td>
+                                                                                                                                    <input type="checkbox" class="seats" id = '17' value="B5">
+                        </td>
+                                                                                                                                    <td></td>
+                                                                                                                                    <td>
+                                                                                                                                        <input type="checkbox" class="seats" id = '18' value="B6">
+                        </td>
+                                                                                                                                        <td>
+                                                                                                                                            <input type="checkbox" class="seats" id = '19' value="B7">
+                        </td>
+                                                                                                                                            <td>
+                                                                                                                                                <input type="checkbox" class="seats" id = '20' value="B8">
+                        </td>
+                                                                                                                                                <td>
+                                                                                                                                                    <input type="checkbox" class="seats" id = '21' value="B9">
+                        </td>
+                                                                                                                                                    <td>
+                                                                                                                                                        <input type="checkbox" class="seats" id = '22' value="B10">
+                        </td>
+                                                                                                                                                        <td>
+                                                                                                                                                            <input type="checkbox" class="seats" id = '23' value="B11">
+                        </td>
+                                                                                                                                                            <td>
+                                                                                                                                                                <input type="checkbox" class="seats" id = '24' value="B12">
+                        </td>
+                    </tr>
+
+                                                                                                                                                            <tr>
+                                                                                                                                                                <td>C</td>
+                                                                                                                                                                <td>
+                                                                                                                                                                    <input type="checkbox" class="seats" id = '25' value="C1">
+                        </td>
+                                                                                                                                                                    <td>
+                                                                                                                                                                        <input type="checkbox" class="seats" id = '26' value="C2">
+                        </td>
+                                                                                                                                                                        <td>
+                                                                                                                                                                            <input type="checkbox" class="seats" id = '27' value="C3">
+                        </td>
+                                                                                                                                                                            <td>
+                                                                                                                                                                                <input type="checkbox" class="seats" id = '28' value="C4">
+                        </td>
+                                                                                                                                                                                <td>
+                                                                                                                                                                                    <input type="checkbox" class="seats" id = '29' value="C5">
+                        </td>
+                                                                                                                                                                                    <td></td>
+                                                                                                                                                                                    <td>
+                                                                                                                                                                                        <input type="checkbox" class="seats" id = '30' value="C6">
+                        </td>
+                                                                                                                                                                                        <td>
+                                                                                                                                                                                            <input type="checkbox" class="seats" id = '31' value="C7">
+                        </td>
+                                                                                                                                                                                            <td>
+                                                                                                                                                                                                <input type="checkbox" class="seats" id = '32' value="C8">
+                        </td>
+                                                                                                                                                                                                <td>
+                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '33' value="C9">
+                        </td>
+                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '34' value="C10">
+                        </td>
+                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '35' value="C11">
+                        </td>
+                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '36' value="C12">
+                        </td>
+                    </tr>
+
+                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                <td>D</td>
+                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '37' value="D1">
+                        </td>
+                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '38' value="D2">
+                        </td>
+                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '39' value="D3">
+                        </td>
+                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '40' value="D4">
+                        </td>
+                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '41' value="D5">
+                        </td>
+                                                                                                                                                                                                                                    <td></td>
+                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '42' value="D6">
+                        </td>
+                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '43' value="D7">
+                        </td>
+                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '44' value="D8">
+                        </td>
+                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '45' value="D9">
+                        </td>
+                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '46' value="D10">
+                        </td>
+                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '47' value="D11">
+                        </td>
+                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '48' value="D12">
+                        </td>
+                    </tr>
+
+                                                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                                                <td>E</td>
+                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '49' value="E1">
+                        </td>
+                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '50' value="E2">
+                        </td>
+                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '51' value="E3">
+                        </td>
+                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '52' value="E4">
+                        </td>
+                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '53' value="E5">
+                        </td>
+                                                                                                                                                                                                                                                                                    <td></td>
+                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '54' value="E6">
+                        </td>
+                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '55' value="E7">
+                        </td>
+                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '56' value="E8">
+                        </td>
+                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '57' value="E9">
+                        </td>
+                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '58' value="E10">
+                        </td>
+                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '59' value="E11">
+                        </td>
+                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '60' value="E12">
+                        </td>
+                    </tr>
+
+                                                                                                                                                                                                                                                                                                            <tr class="seatVGap"></tr>
+
+                                                                                                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                                                                                                <td>F</td>
+                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '61' value="F1">
+                        </td>
+                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '62' value="F2">
+                        </td>
+                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '63' value="F3">
+                        </td>
+                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '64' value="F4">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '65' value="F5">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                    <td></td>
+                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '66' value="F6">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '67' value="F7">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '68' value="F8">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '69' value="F9">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '70' value="F10">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '71' value="F11">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '72' value="F12">
+                        </td>
+                    </tr>
+
+                                                                                                                                                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                                                                                                                                                <td>G</td>
+                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '73' value="G1">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '74' value="G2">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '75' value="G3">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '76' value="G4">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '77' value="G5">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                    <td></td>
+                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '78' value="G6">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '79' value="G7">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '80' value="G8">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '81' value="G9">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '82' value="G10">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '83' value="G11">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '84' value="G12">
+                        </td>
+                    </tr>
+
+                                                                                                                                                                                                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                                                                                                                                                                                                <td>H</td>
+                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '85' value="H1">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '86' value="H2">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '87' value="H3">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '88' value="H4">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '89' value="H5">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                    <td></td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '90' value="H6">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '91' value="H7">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '92' value="H8">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '93' value="H9">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '94' value="H10">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '95' value="H11">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '96' value="H12">
+                        </td>
+                    </tr>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>I</td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '97' value="I1">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '98' value="I2">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '99' value="I3">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '100' value="I4">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '101' value="I5">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td></td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '102' value="I6">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '103' value="I7">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '104' value="I8">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '105' value="I9">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '106' value="I10">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '107' value="I11">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '108' value="I12">
+                        </td>
+                    </tr>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>J</td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '109' value="J1">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '110' value="J2">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '111' value="J3">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '112' value="J4">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '113' value="J5">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td></td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '114' value="J6">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '115' value="J7">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '116' value="J8">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="checkbox" class="seats" id = '117' value="J9">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <input type="checkbox" class="seats" id = '118' value="J10">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="seats" id = '119' value="J11">
+                        </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <input type="checkbox" class="seats" id = '120' value="J12">
+                        </td>
+                    </tr>
+                </table>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <div class="screen">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <h2 class="wthree">     Screen this way</h2>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <button id=getValue onclick="updateTextArea()">Confirm Selection</button>\n
+            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <!-- //seat layout -->
+            <!-- details after booking displayed here -->
+            <div class="displayerBoxes txt-center" style="overflow-x:auto;">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <table class="Displaytable w3ls-table" width="100%">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-----<th>Name</th>----->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-----<th>Number of Seats</th>----->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-----<th>Seats</th>----->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <!-----<th>Mobile Number</th>----->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </tr>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <tr>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <!-----<textarea id="nameDisplay"></textarea>----->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <!-----<textarea id="NumberDisplay"></textarea>----->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <input type="hidden" id="seatsDisplay">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <!-----<textarea id="mobileDisplay"></textarea>----->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </td>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </tr>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        </table>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <!-- //details after booking displayed here -->
+        </div>
+    </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <div class="copy-wthree">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                <p>
+            <a href="http://w3layouts.com/" target="_blank"></a>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                </p>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <!-- js -->
+    <script src="js/jquery-2.2.3.min.js"></script>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            <!-- //js -->
+    <!-- script for seat selection -->
+    <script>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                function onLoaderFunc() {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+        function takeData() {
+            var arr1 = []
+            var arr=arr1.concat(${bookedSeats})      
+            var c=0;
+            if (($("#Username").val().length == 0) || ($("#Numseats").val().length == 0)) {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    alert("Please Enter your Name and Number of Seats");
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                } else {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    $(".inputForm *").prop("disabled", true);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $(".seatStructure *").prop("disabled", false);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                document.getElementById("notification").innerHTML =
+                    "<b style='margin-bottom:0px;background:#ff9800;letter-spacing:1px;'>Please Select your Seats NOW!</b>";
+                     while(c<arr.length){
+                        document.getElementById(arr[c]).disabled = true;
+                        document.getElementById(arr[c]).innerHTML = 'background-color:red';
+                        c=c+1;
+                        }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+        function updateTextArea() {
+
+            if ($("input:checked").length == ($("#Numseats").val())) {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    $(".seatStructure *").prop("disabled", false);
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                var allNameVals = [];
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                var allNumberVals = [];
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                var allSeatsVals = [];
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                var allMobileVals = [];
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                //Storing in Array
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                allNameVals.push($("#Username").val());
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                allNumberVals.push($("#Numseats").val());
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                allMobileVals.push($("#mobileNumber").val());
+                $('#seatsBlock :checked').each(function () {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    allSeatsVals.push($(this).val());
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                });
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                //Displaying
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $('#nameDisplay').val(allNameVals);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $('#NumberDisplay').val(allNumberVals);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $('#seatsDisplay').val(allSeatsVals);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $('#mobileDisplay').val(allMobileVals);
+            } else {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    alert("Please select " + ($("#Numseats").val()) + " seats")
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+        function myFunction() {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    alert($("input:checked").length);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                /*
+        function getCookie(cname) {
+            var name = cname + "=";
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                var ca = document.cookie.split(';');
+            for(var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    c = c.substring(1);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        return "";
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    */
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+        $(":checkbox").click(function () {
+            if ($("input:checked").length == ($("#Numseats").val())) {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    $(":checkbox").prop('disabled', true);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                $(':checked').prop('disabled', false);
+            } else {
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    $(":checkbox").prop('disabled', false);
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    var arr1 = []
+var arr=arr1.concat(${bookedSeats})      
+var c=0;
+while(c<arr.length){
+        document.getElementById(arr[c]).disabled = true;
+        
+	c=c+1;
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            });
+    $("#changecolor").load(function(){
+         $(this).parent().addClass("redBackground"); 
+    })
+    
+
+  
+    
+    </script>
+    
+
+</body>
+
+
+<style>
+
+input[type=checkbox]:before {
+    content: "";
+    width: 25px;
+    height: 20px;
+    border-radius: 5px;
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+    border: 2px solid #ff9800;
+    background-color: #ffffff;
+}
+
+input[type=checkbox]:disabled:before {
+    content: "";
+    width: 25px;
+    height: 20px;
+    
+    background-color:grey;
+}
+
+input[type=checkbox]:checked:before {
+    background-color: Green;
+    font-size: 15px;
+}
+.redcolor{
+    backgorund-color:red;
+}
+.seats {
+            width: 25px; 
+            height: 20px;
+}
+.seatGap{
+            width: 40px;
+}
+.seatVGap {
+    height: 40px;
+}
+h2 {
+    color: #000000;
+    border: 1px solid black;
+    background: #ff9800;
+    text-transform: capitalize;
+    margin-bottom: 25px;
+    font-size: 1.2em;
+    letter-spacing: 0.5px;
+    text-align: center;
+    line-height: 2.0;
+}
+</style>
+</html>`
+
+
+            let buf = Buffer.from(loginHtml, "utf8");
+            app.uploadFile(buf, "file.html").then((res) => {
+                app.log(res, "html file link");
+                app.sendWebView('Book Seats', res, 800).then((results) => {
+                    app.setStep('seatsDisplay', loginHtml)
+                    app.log(results, 'result');
+                    return resolve();
+                });
+            });
+        }
+        
+    })
+            })
+            })
+        })
+
+    })
+});

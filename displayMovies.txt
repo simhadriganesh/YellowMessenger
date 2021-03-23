@@ -1,0 +1,67 @@
+return new Promise(resolve => {
+    app.log("================in display movies==============")
+    let option = app.data.message;
+    let opt = option.toLowerCase()
+    app.dataStore.search({
+        table: 'moviesdb',
+        body: {
+            "query": {
+                "match_all": {}
+            },
+            size: '100'
+        }
+    }).then((result) => {
+        app.log('=========result==============')
+        app.log(result)
+        let data = result.hits.hits;
+        app.log(data, "data")
+        let moviedetails , loc;
+        
+        data.forEach((item) => {
+             loc = item._source.location;
+            app.log(loc, "the location is ----->")
+            //if (loc.toLowerCase() == option.toLowerCase()) {
+            if (opt.toLowerCase().includes(loc.toLowerCase())) {
+                app.memory.set("location", loc)
+                moviedetails = JSON.parse(item._source.movies);
+                app.log(moviedetails, "moviedetails is : ")
+                let count = 0;
+                let movieArr = [];
+                moviedetails.forEach((detail) => {
+                    count++
+                    movieArr.push(
+                        {
+                            title: `<strong> Movie Name : ${detail.MovieName} </strong> `,
+                            image: detail.img,
+                            form: [{
+                                header: ` `,
+                                content: [{
+                                    subheader: `<strong>Cast :</strong>`,
+                                    description: ` ${detail.Hero}  ,
+                                                   ${detail.Heroine} ,
+                                                   ${detail.Producer} ,
+                                                   ${detail.Director}`
+                                }]
+                            }],
+                            actions: [{
+                                title: `Select`,
+                                //title: `Select ${" " + count}`,
+                                text: detail.MovieName
+                            }]
+                        }
+                    )
+                })
+                app.setStep("displaymovies2",movieArr)
+                app.log(movieArr,"The set step movie array is : ")
+                app.sendTextMessage("Please find the list of movies below in " + loc)
+                app.sendCards(movieArr).then(() => {
+                    return resolve();
+                })
+            }
+        })
+        
+
+    })
+
+
+});

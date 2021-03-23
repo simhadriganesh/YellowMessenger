@@ -1,0 +1,61 @@
+return new Promise(resolve => {
+    app.log("================in food items==============")
+    // let option = app.data.message;
+    // let opt = option.toLowerCase()
+    app.dataStore.search({
+        table: 'food_items',
+        body: {
+            "query": {
+                "match_all": {}
+            },
+            size: '100'
+        }
+    }).then((result) => {
+        app.log('=========result==============')
+        app.log(result)
+        let data = result.hits.hits;
+        app.log(data, "data")
+        let fooddetails;
+        data.forEach((item) => {
+            let food = item._source.food_items;
+            app.log(food, "the food is ----->")
+            //if (loc.toLowerCase() == option.toLowerCase()) {
+            //if (opt.toLowerCase().includes(loc.toLowerCase())) {
+            fooddetails = JSON.parse(food);
+            app.log(fooddetails, "fooddetails is : ")
+            let count = 0;
+            let foodArr = [];
+            fooddetails.forEach((detail) => {
+                count++
+                foodArr.push(
+                    {
+                        title: `<strong> Food item : ${detail.FoodItem} </strong> `,
+                        image: detail.img,
+                        form: [{
+                            header: ` `,
+                            content: [{
+                                subheader: ``,
+                                description: `<strong>Price : ${detail.Price} </strong>`
+                                //   <strong> Heroines : ${detail.Heroine} </strong>,
+                                //   <strong> Producer : ${detail.Producer} </strong>,
+                                //   <strong> Director : ${detail.Director} </strong>
+                            }]
+                        }],
+                        actions: [{
+                            title: `Select`,
+                            //title: `Select ${" " + count}`,
+                            text: detail.Price
+                        }]
+                    }
+                )
+            })
+            app.sendTextMessage("Please select the food you like")
+            app.sendCards(foodArr).then(() => {
+                return resolve();
+            })
+            //}
+        })
+    })
+
+
+});

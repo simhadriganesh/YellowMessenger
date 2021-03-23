@@ -1,0 +1,15 @@
+return new Promise(resolve => {
+    app.log("===================in details display=======================")
+    let detail = app.context.steps['displayseats']
+    let details = JSON.parse(detail)
+    let name = details.event.data.Name
+    let numOfSeats = details.event.data.Numofseats
+    let seatNumbers = details.event.data.seats
+    let mobile = details.event.data.mobileNumber
+    app.log(name)
+    app.log(numOfSeats)
+    app.log(seatNumbers)
+    app.log(mobile)
+    app.sendTextMessage('Name : ' + name + "\nNumber of seats : " + numOfSeats +  "\nSeat numbers : " + seatNumbers + "\nMobile number : " + mobile)
+    resolve();
+});

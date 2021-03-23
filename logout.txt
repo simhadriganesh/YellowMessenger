@@ -1,0 +1,7 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log('inside logout function')
+    app.memory.delete('activeUser');
+    app.triggerIntent('start')
+    resolve();
+});

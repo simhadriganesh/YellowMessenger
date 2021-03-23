@@ -1,0 +1,18 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log("=================in display payments type==============")
+    app.sendQuickReplies({
+        title: `Please select your payment type`,
+        options: [
+            {
+                title: "Debit card / Credit card",
+                text: "debit card"
+            },
+            {
+                title: "PayPal",
+                url: "https://www.paypal.com/in/signin",
+            }
+        ]
+    });
+    resolve();
+});

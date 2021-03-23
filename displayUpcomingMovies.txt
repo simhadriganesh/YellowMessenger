@@ -1,0 +1,70 @@
+return new Promise(resolve => {
+    app.log("================in display upcoming movies==============")
+    let option = app.data.message;
+    let opt = option.toLowerCase()
+    app.dataStore.search({
+        table: 'upcoming_movies',
+        body: {
+            "query": {
+                "match_all": {}
+            },
+            size: '100'
+        }
+    }).then((result) => {
+        app.log('=========result==============')
+        app.log(result)
+        let data = result.hits.hits;
+        app.log(data, "data")
+        let moviedetails;
+        data.forEach((item) => {
+            let language = item._source.language;
+            app.log(language, "the language is ----->")
+            //if (loc.toLowerCase() == option.toLowerCase()) {
+            if (opt.toLowerCase().includes(language.toLowerCase())) {
+                moviedetails = JSON.parse(item._source.movies);
+                app.log(moviedetails, "moviedetails is : ")
+                let count = 0;
+                let movieArr = [];
+                moviedetails.forEach((detail) => {
+                    count++
+                    movieArr.push(
+                        {
+                            title: `<strong> Movie Name : ${detail.MovieName} </strong> `,
+                            image: detail.img,
+                            form: [{
+                                header: ` `,
+                                content: [{
+                                    subheader: ``,
+                                    description: `<strong> Hero </strong>: ${detail.Hero}  ,
+                                                  <strong> Heroines</strong> : ${detail.Heroine} ,
+                                                  <strong> Producer </strong>: ${detail.Producer} ,
+                                                  <strong> Director </strong>: ${detail.Director} `
+                                }]
+                            }],
+                            actions: [
+                                {
+                                title: `Watch Trailer`,
+                                url: detail.Trailer
+                                },
+                                {
+                                title: `More Details`,
+                                //title: `Select ${" " + count}`,
+                                url: detail.IMDB
+                                }
+                            ]
+                        }
+                    )
+                })
+                app.sendTextMessage("Please find the list of movies below in " + language)
+                app.sendCards(movieArr).then(() => {
+                    return resolve();
+                })
+            }
+        })
+    }).catch((err)=>{
+        app.log(err,"error is : ")
+        app.sendTextMessage(err)
+    })
+
+
+});

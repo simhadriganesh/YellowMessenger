@@ -1,0 +1,50 @@
+return new Promise(resolve => {
+    
+    app.log("=========================start menu==============================");
+
+    let currentTime = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' });
+    let currentHour = currentTime.split(':')[0];
+    let currentFrame = currentTime.split(' ')[1];
+    let currentHourFinal, greetingMessage;
+    if (currentFrame == 'PM') {
+        if (currentHour == 12 || (currentHour >= 1 && currentHour < 4)) {
+            greetingMessage = '<strong>Good Afternoon!☀️️</strong>'
+        }
+        else if (currentHour >= 4 && currentHour < 12) {
+            greetingMessage = '<strong>Good Evening!🌙</strong>'
+        }
+        else {
+            greetingMessage = "Hello"
+        }
+    }
+    else {
+        if (currentHour == 12 || currentHour >= 1 && currentHour < 12) {
+            greetingMessage = '<strong>Good Morning!☀️️</strong>'
+        }
+        else {
+            greetingMessage = "Hello"
+        }
+    }
+    app.sendTextMessage(`${greetingMessage} I'm Remo!, Your virtual assistant, I'm here to help you.`).then(() => {
+        app.sendQuickReplies({
+                title: "Can I help you with any of these ?",
+                options: [
+                    {
+                        title: "Book Movie",
+                        text: "Book Movie"
+                    },
+                    {
+                        title: "Upcoming Movies",
+                        text: "Upcoming Movies"
+                    },
+                    {
+                        title: "Offers and exclusives",
+                        text: "Offers and exclusives"
+                    }
+                ]
+            }).then(() => {
+            app.log(app.data, "data")
+            return resolve();
+        });
+    });
+})

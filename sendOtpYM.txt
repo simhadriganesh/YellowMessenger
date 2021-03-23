@@ -1,0 +1,22 @@
+return new Promise(async resolve => {
+    // Your logic goes here
+    let detail = app.context.steps['displayseats']
+    let details = JSON.parse(detail)
+    let mobileNumber = details.event.data.mobileNumber
+    //app.sendTextMessage("Please enter the OTP that has been sent to your mobile number " + mobileNumber)
+    await app.sendQuickReplies({
+        title: "Please enter the OTP that has been sent to your mobile number",
+        options: [
+            {
+                title: "Resend OTP",
+                text: "resend"
+            }
+           
+        ]
+    })
+    await app.sendOtp(mobileNumber).then((otp)=>{
+        app.log(otp,"here otp")
+        //app.setStep("sndotpym",otp);
+    })
+    resolve();
+});

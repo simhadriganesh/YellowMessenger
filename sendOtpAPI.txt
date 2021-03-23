@@ -1,0 +1,42 @@
+return new Promise(async resolve => {
+    // Your logic goes here
+
+    app.log("=====================in send OTP=========================");
+    let detail = app.context.steps['displayseats']
+    let details = JSON.parse(detail)
+    let mobileNumber = details.event.data.mobileNumber
+    app.log(mobileNumber, "mobile number is : ")
+    //let body = app.context.steps['body'];
+    // app.executeApi('NumbersAPI').then((response) => {
+    //     app.log(response, 'response')
+    //     app.sendTextMessage("done")
+    // }).catch(error => {
+    //     app.log(error.message, "ERROR FROM EXECUTE API");
+    //     return resolve({ 'success': false });
+    // });
+    //resolve();
+    await app.executeApi('send_otp', { phoneno: mobileNumber }).then((response) => {
+        app.log(response, 'response')
+        if (response.statusCode != 200) {
+            app.sendTextMessage("api not suceess")
+            return resolve();
+        }
+        else if (response.statusCode == 200) {
+
+            app.sendTextMessage("Please enter the OTP that has been sent to your mobile number " + mobileNumber)
+            let bodyData = JSON.parse(response.body);
+            app.log(bodyData, "bodydata")
+            app.log(bodyData.Details, "body details :")
+            //app.sendTextMessage("The body details is " + bodyData.Details)
+            app.memory.set('detailsData', bodyData.Details)
+            return resolve();
+
+        }
+
+
+    }).catch(error => {
+        app.log(error.message, "ERROR FROM EXECUTE API");
+        return resolve({ 'success': false });
+    });
+    // return resolve();
+});
