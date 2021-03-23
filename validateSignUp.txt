@@ -1,0 +1,84 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    // let data = app.context.steps['dispalysignupform']
+    let data=app.data.message;
+    // app.sendTextMessage(data)
+    let info=JSON.parse(data)
+    let username = info.event.data.userName;
+    let password = info.event.data.repeatPWD;
+    let cust_email = info.event.data.email;
+    let cust_phone = info.event.data.phone;
+    app.log('password is============',password);
+    let custID=0;
+    
+    // app.sendTextMessage(info.event.data.userName)
+
+    app.sendTextMessage(info.date)
+    app.dataStore.search({
+        table: 'customer_details',
+        body: {
+            "query": {
+                "match": {
+                    "username": username                   
+                }
+            }
+        }
+    }).then((customer_details) => {
+        app.log(customer_details)
+        let customer_info = customer_details.hits.hits;
+        app.log(customer_info.length)
+        if (customer_info.length==1){
+            return app.sendTextMessage("Username is already Taken Try AGAIN").then(() => {
+                app.executeFunction("signupForm");
+            // if(dbPasssword==password){
+            //     app.sendTextMessage("LOGIN successful")
+            // }
+            // else{
+            //     return app.sendTextMessage("Inncorrect Password TRY AGAIN").then(()=>{
+            //         app.executeFunction("loginForm");
+            })
+            // }
+        }
+        else{
+            
+            app.dataStore.search({
+                table: 'customer_details',
+                body: {
+                    "query": {
+                        "match_all": {}
+                    }
+                }
+            }).then((res)=>{
+                app.log("NUMBER OF RECORDS"+res.hits.total);
+                custID=res.hits.total + 1
+                
+            }).then(()=>{
+            app.dataStore.insert({ 
+                    table:'customer_details',
+                    record:{
+                        "name": info.event.data.name,
+                        "username": info.event.data.userName,
+                        "password":password,
+                        "mail_id":cust_email,
+                        "phone":cust_phone,
+                        "customer_id":custID
+                    } 
+                }).then((res)=>{
+                    app.log("Inserted record=>"+res)
+                })
+            })
+            return app.sendTextMessage("Account created ").then(()=>{
+                app.memory.set("activeUser",custID);
+                app.sendQuickReplies({
+                    title:"click here to",
+                    options:[{
+                        title:"Login",
+                        text:'login'
+                    }]
+                })
+            });
+        }
+    });
+    app.log(data)
+    resolve();
+});

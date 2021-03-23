@@ -1,0 +1,66 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log("=========================in seats validator=======================")
+
+    let option = app.data.message
+    app.log(option, "The values are : ")
+    let seatsDisplay = app.context.steps['seatsDisplay']
+    let values = JSON.parse(option)
+    app.log(typeof (values))
+    let name = values.event.data.Name
+    app.log("========================== Name Validator ========================")
+    if (/^([a-zzA-Z]+)\s+(?:([a-zA-Z](\.)|[a-zA-Z]+(?:-[a-zA-Z]+)?)\s+)?([a-zA-Z]+(?:-[a-zA-Z]+)?)/.test(name)) {
+        // Name is valid
+        //app.sendTextMessage('Such a nice name!').then(() => {
+            return resolve();
+        //});
+    }
+    else {
+        // Invalid name
+        app.log("name-invalid");
+        resolve({
+            success: false,
+            customHandler: () => {
+                if (app.prediction && app.prediction.intent && app.prediction.confidence > 0.8) {
+                    return app.triggerIntent(app.prediction.intent);
+                }
+                else {
+                    return app.sendTextMessage(`Invalid name. Please enter name in the format "first name last name" .`);
+                }
+            }
+        });
+    }
+
+
+    let numOfSeats = values.event.data.Numofseats
+    let seatNumbers = values.event.data.seats
+    let selectedSeats = values.event.data.selectedSeats
+    app.log(name, "The name is : ")
+    app.log(numOfSeats, "The numOfSeats is : ")
+    app.log(seatNumbers, "The seatNumbers is : ")
+    let seatsNum = seatNumbers.split(",")
+
+    let len = seatsNum.length
+    app.log(len, "the length is : ")
+    if (numOfSeats == len) {
+        return resolve({ success: true })
+    }
+    else {
+        app.sendTextMessage("Please select " + selectedSeats + " seats").then(() => {
+            //app.executeFunction('displaySeats').then(() => {
+            let buf = Buffer.from(seatsDisplay, "utf8");
+            app.uploadFile(buf, "file.html").then((res) => {
+                app.log(res, "html file link");
+                app.sendWebView('Book Seats', res, 700).then((results) => {
+                    //app.setStep('seatsDisplay', loginHtml)
+                    app.log(results, 'result');
+                    return resolve({ success: false })
+                });
+            });
+            
+            //})
+
+        })
+    }
+    //return resolve();
+});

@@ -1,0 +1,55 @@
+return new Promise(resolve => {
+    app.log("========================in date validator===================")
+    app.log(app.prediction, "the prediction1 is : ")
+    let opt = app.data.message
+    let calander = app.context.steps['calander']
+
+    if (opt.includes("date")) {
+
+
+        let data1 = JSON.parse(opt)
+        let date = data1.event.data.date
+        app.log(date, "the date :")
+        let today = app.moment();
+        let today1 = JSON.stringify(today)
+        app.log(today1, "today1 is :")
+        app.log(typeof (today1), "The type  is :")
+        let date1 = today1.split('T')[0]
+        app.log(date1, "date1 is :")
+        let date2 = date1.split('"')[1]
+        app.log(date2, "today")
+
+        if (date >= date2) {
+            return resolve({ success: true })
+        }
+        else {
+            app.sendTextMessage("Please select a valid date").then(() => {
+                let buf = Buffer.from(calander, "utf8");
+                app.uploadFile(buf, "file.html").then((res) => {
+                    app.log(res, "html file link");
+                    app.sendWebView('', res, 60).then((results) => {
+                        app.log(results, 'result');
+                    });
+                });
+                return resolve({ success: false })
+            })
+        }
+    }
+    //    // }
+    else {
+        app.sendTextMessage("Please select a valid date").then(() => {
+            let buf = Buffer.from(calander, "utf8");
+            app.uploadFile(buf, "file.html").then((res) => {
+                app.log(res, "html file link");
+                app.sendWebView('', res, 60).then((results) => {
+                    app.log(results, 'result');
+                });
+            });
+
+            resolve({ success: false })
+        })
+
+
+    }
+    //resolve();
+});

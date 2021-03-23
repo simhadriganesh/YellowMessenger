@@ -1,0 +1,29 @@
+return new Promise(resolve => {
+    app.log("==================in order food validator====================")
+    let option = app.data.message.toLowerCase()
+    if (option == 'yes' || option == 'no') {
+        return resolve({ success: true })
+    }
+    else {
+        return resolve({
+            success: false,
+            customHandler: () => {
+                app.sendQuickReplies({
+                    title: 'Please select a valid option',
+                    options: [
+                        {
+                            title: 'Yes',
+                            text: 'Yes'
+                        },
+                        {
+                            title: 'No',
+                            text: 'No'
+                        }
+                    ]
+                })
+            }
+        })
+
+
+    }
+});

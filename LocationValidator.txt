@@ -1,0 +1,46 @@
+// return new Promise(resolve => {
+//     // Your logic goes here
+//     app.log("============================in Location validator==============================");
+//     let message = app.data.message;
+//     let opt = message.toLowerCase()
+//     app.log(message);
+//     // let locationArray = ['vijayawada', 'guntur', 'chennai', 'hyderabad']
+//     // if (locationArray.includes(opt)){
+//         app.log("before if")
+//     if (opt.includes('vijayawada') || opt.includes('guntur') || opt.includes('chennai') || opt.includes('hyderabad')) {
+//         app.log("inside if")
+//         return resolve();
+//     }
+//     else {
+//         app.log("inside else")
+//         app.sendTextMessage("Please enter a valid location").then(() => {
+//         return resolve({ success: false })
+//         });
+//     }
+// });
+
+"======================================== using array ==================================="
+return new Promise(resolve => {
+    app.log("===============================in movie validator==================================")
+
+    let message = app.data.message.toLowerCase()
+    app.log(message, "the message is :")
+    let locationArray = ['vijayawada', 'guntur', 'chennai', 'hyderabad']
+    let flag = false
+    locationArray.forEach((item) => {
+        if (message.includes(item)) {
+            flag = true;
+        }
+    })
+    if (flag == true) {
+        return resolve({ success: true });
+    }
+    else {
+        return resolve({
+            success: false,
+            customHandler: () => {
+                app.sendTextMessage("Please enter a valid location")
+            }
+        })
+    }
+});

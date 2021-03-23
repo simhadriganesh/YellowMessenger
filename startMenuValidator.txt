@@ -1,0 +1,45 @@
+return new Promise(resolve => {
+
+    app.log('======================in start menu validator======================');
+
+    let value = app.data.message.toLowerCase()
+    app.log(value, "Value is :")
+    // app.log(app.prediction, "predictionss");
+    // if (app.prediction.intent && app.prediction.confidence >= 0.8) {
+    //     app.log(app.prediction.intent, "trigger intent in startmenuvalidator");
+    //     app.triggerIntent(app.prediction.intent);
+    if (value.includes( 'book')){ 
+        app.triggerIntent('bookmovie')
+    }
+    else if (value.includes('upcoming movies')){
+        app.triggerIntent('upcomingmovies') 
+    }
+    else if (value.includes('offers and exclusives') || value.includes('offers') || value.includes('exclusives')) {
+        app.triggerIntent('offersandexclusives')
+        return resolve();
+    } 
+    // else if(value.includes('language')){
+    //     app.triggerIntent('language')
+    //     return resolve();
+    // }
+    else {
+        app.sendQuickReplies({
+            title: `Sorry, I could not get it.\nPlease select an option from below mention list to go forward`,
+            options: [
+                {
+                    title: "Book Movie",
+                    text: "Book Movie"
+                },
+                {
+                    title: "Upcoming Movies",
+                    text: "Upcoming Movies"
+                },
+                {
+                    title: "Offers and exclusives",
+                    text: "Offers and exclusives"
+                }
+            ]
+        })
+
+    }
+});

@@ -1,0 +1,68 @@
+// return new Promise(resolve => {
+//     app.log("============================in theatre validator============================")
+
+//     let option = app.data.message
+//     let opt = option.toLowerCase()
+//     app.log(opt, "the option is :")
+//     if (opt.includes('capital cinemas') || opt.includes('sailaja Theatre') || opt.includes('apsara Theatre')) {
+//         return resolve({ success: true });
+//     }
+
+//     else {
+//         app.sendTextMessage("Please select a valid theatre").then(() => {
+//             return resolve({ success: false })
+//         })
+//     }
+//     //resolve()
+// });
+
+"======================================== using array ==================================="
+return new Promise(resolve => {
+    app.log("===============================in theatre validator==================================")
+    // let stepstoskip = {
+    //     'location': app.context.steps['location'],
+    //     'displaymovies': app.context.steps['displaymovies']
+    // }
+    let message = app.data.message.toLowerCase()
+    let theatreArr = app.context.steps['displayTheatres2']
+    app.log(message, "the option is :")
+    app.memory.get("theatreDetails").then((val) => {
+        app.log(val, "The value is :")
+        let value = JSON.parse(val)
+        app.log(typeof (value), "the type of value is :")
+        value.forEach((item) => {
+            let theatreName = item.TheatreName.toLowerCase()
+            app.log(theatreName, "The name is :")
+            if (message.includes(theatreName)) {
+                app.log("option matched.....................................")
+                app.memory.set("TheatreName", theatreName)
+            }
+        })
+    })
+
+    let theatreArray = ['capital cinemas', 'sailaja theatre', 'apsara theatre', 'lepl', 'miraj theatre', 'santhi & prasanthi', 'pvp', 'balaji theatre', 'raj and yuvaraj',
+        'ags cinemas', 'anna theatre', 'gk cinemas', 'cinepolis - bsr mall', 'gokulam pavilion', 'jothi cinema hall', 'sri gowri shankar cinema theatre', 'harihar cinemas',
+        'hollywood bollywood theater', 'cine prime', 'metro & tollywood', 'sri saraswathi picture palace', 'aradhana 70mm', 'pvr cinemas', 'mallikarjuna theatre',
+        'carnival cinemas', 'kumar theatre', 'vijetha theatre']
+    let flag = false
+    theatreArray.forEach((item) => {
+        if (message.includes(item)) {
+            flag = true;
+
+        }
+    })
+    if (flag == true) {
+        return resolve({ success: true });
+    }
+    else {
+        return resolve({
+            success: false,
+            customHandler: () => {
+                return app.sendTextMessage("Please select a valid theatre").then(() => {
+                    app.sendCards(theatreArr)
+                })
+            }
+        })
+    }
+});
+

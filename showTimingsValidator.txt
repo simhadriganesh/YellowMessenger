@@ -1,0 +1,341 @@
+return new Promise(resolve => {
+    app.log("============================in show timings validator============================")
+
+    let option = app.data.message
+    app.log(option, "the option is :")
+    let timeArray = ['09:00 AM', '11:30 AM', '01:30 PM', '03:30 PM', '06:30 PM','10:30 PM']
+    let flag = false
+    timeArray.forEach((item) => {
+        if (option.includes(item)) {
+            flag = true;
+        }
+    })
+    if (flag == true) {
+        return resolve({ success: true });
+    }
+    else {
+        app.log('in else')
+        // app.sendTextMessage("please select valid one").then(()=>{
+        //     return resolve({ success: false })
+        //})
+        app.sendQuickReplies({
+            title: "Please select valid time from below options",
+            options: [
+                {
+                    title: "09:00 AM",
+                    text: "09:00 AM"
+                },
+                {
+                    title: "11:30 AM",
+                    text: "11:30 AM"
+                },
+                {
+                    title: "01:30 PM",
+                    text: "01:30 PM"
+                },
+                {
+                    title: "03:30 PM",
+                    text: "03:30 PM"
+                },
+                {
+                    title: "06:30 PM",
+                    text: "06:30 PM"
+                },
+                {
+                    title: "10:30 PM",
+                    text: "10:30 PM"
+                }
+            ]
+        }).then(() => {
+            app.log(app.data, "data")
+            return resolve({ success: false })
+        })
+    }
+    //resolve()
+});
+
+
+
+
+=========================================================== 2nd time changed validator ============================================================
+return new Promise(resolve => {
+    app.log("============================in show timings validator============================")
+
+    let option = app.data.message
+    app.log(option, "the option is :")
+    let selectedHour = option.split(':')[0];
+
+    let selectedMinute = option.split(':')[1];
+    let timeArray = ['9:00', '11:30', '13:30', '15:30', '18:30', '22:30']
+
+    let data1 = JSON.parse(app.context.steps['calendar'])
+    let dat = data1.event.data.date
+    app.log(dat, "The selected date is :")
+
+    let today = app.moment();
+    let today1 = JSON.stringify(today)
+    app.log(today1, "today1 is :")
+    app.log(typeof (today1), "The type  is :")
+    let date1 = today1.split('T')[0]
+    app.log(date1, "date1 is :")
+    let date2 = date1.split('"')[1]
+    app.log(date2, "today")
+
+    let currentTime = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' });
+    app.log(currentTime, "the current time is : ")
+
+    app.log("======================================= changing timeZone from 12 hours format to 24 hours format =============================================")
+    
+    let currentHour = currentTime.split(':')[0];
+    let currentMinute = currentTime.split(':')[1];
+    let currentFrame = currentTime.split(' ')[1];
+
+    if(currentFrame == 'PM' && currentHour < 12) { 
+        currentHour = parseInt(currentHour) + parseInt(12)
+    }
+    else if (currentFrame == 'AM' && currentHour == 12) {
+        currentHour = parseInt(currentHour) - parseInt(12)
+    }
+    else if (currentFrame == 'AM' && currentHour < 12) {
+        currentHour 
+    }
+    let timeFormat = currentHour+":"+currentMinute 
+    app.log(timeFormat, "the changed 24 hours current time is : ")
+    let flag = false
+    timeArray.forEach((item) => {
+        if(dat > date2){
+            app.log("in if")
+            flag = true
+        }
+        else if ((dat == date2)&& option.includes(item) && (parseInt(selectedHour) > parseInt(currentHour))) {
+            app.log("in elseIf 1 :")
+                flag = true;
+            }
+            else if (option.includes(item) && ((parseInt(selectedHour) == parseInt(currentHour)) && (parseInt(selectedMinute) > parseInt(currentMinute)))) {
+                app.log("in elseIf 2 :")
+                flag = true;
+            }
+            else{
+                app.log("in else of show timings validator")
+            }
+    })
+    if (flag == true) {
+        return resolve();
+    }
+    else {
+        app.log('in else')
+        // return resolve({
+        //     success: false,
+        //     customHandler: () => {
+        //         return app.sendOptions(`Please select valid time from below options`, steps['displayshowtimings']);
+        //     }
+        // })
+        app.sendQuickReplies({
+            title: "Please select valid time from below options",
+            options: [
+                {
+                    title: "09:00 AM",
+                    text: "9:00"
+                },
+                {
+                    title: "11:30 AM",
+                    text: "11:30"
+                },
+                {
+                    title: "01:30 PM",
+                    text: "13:30"
+                },
+                {
+                    title: "03:30 PM",
+                    text: "15:30"
+                },
+                {
+                    title: "06:30 PM",
+                    text: "18:30"
+                },
+                {
+                    title: "10:30 PM",
+                    text: "22:30"
+                }
+            ]
+        }).then(() => {
+            app.log(app.data, "data")
+            return resolve({ success: false })
+        })
+    }
+});
+
+
+
+========================================= 3rd(final) time changed validator ============================================================
+
+return new Promise(resolve => {
+    app.log("============================in show timings validator============================")
+
+    let option = app.data.message
+    app.log(option, "the option is :")
+    let selectedHour = option.split(':')[0];
+
+    let selectedMinute = option.split(':')[1];
+    let timeArray = ['9:00', '11:30', '13:30', '15:30', '18:30', '22:30']
+
+    let data1 = JSON.parse(app.context.steps['calendar'])
+    let dat = data1.event.data.date
+    app.log(dat, "The selected date is :")
+
+    let today = app.moment();
+    let today1 = JSON.stringify(today)
+    app.log(today1, "today1 is :")
+    app.log(typeof (today1), "The type  is :")
+    let date1 = today1.split('T')[0]
+    app.log(date1, "date1 is :")
+    let date2 = date1.split('"')[1]
+    app.log(date2, "today")
+
+    let currentTime = new Date().toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' });
+    app.log(currentTime, "the current time is : ")
+
+    app.log("======================================= changing timeZone from 12 hours format to 24 hours format =============================================")
+
+    let currentHour = currentTime.split(':')[0];
+    let currentMinute = currentTime.split(':')[1];
+    let currentFrame = currentTime.split(' ')[1];
+
+    if (currentFrame == 'PM' && currentHour < 12) {
+        currentHour = parseInt(currentHour) + parseInt(12)
+    }
+    else if (currentFrame == 'AM' && currentHour == 12) {
+        currentHour = parseInt(currentHour) - parseInt(12)
+    }
+    else if (currentFrame == 'AM' && currentHour < 12) {
+        currentHour
+    }
+    let timeFormat = currentHour + ":" + currentMinute
+    app.log(timeFormat, "the changed 24 hours current time is : ")
+    let flag = false
+    timeArray.forEach((item) => {
+        if ((dat > date2) && option.includes(item)) {
+            app.log("in if")
+            flag = true
+        }
+        else if ((dat == date2) && option.includes(item) && (parseInt(selectedHour) > parseInt(currentHour))) {
+            app.log("in elseIf 1 :")
+            flag = true;
+        }
+        else if (option.includes(item) && ((parseInt(selectedHour) == parseInt(currentHour)) && (parseInt(selectedMinute) > parseInt(currentMinute)))) {
+            app.log("in elseIf 2 :")
+            flag = true;
+        }
+        // else {
+        //     flag = false
+        //     app.log("in else of show timings validator")
+        // }
+    })
+    if (flag == true) {
+        return resolve();
+    }
+    else {
+        app.log('in else')
+        return resolve({
+            success: false,
+            customHandler: () => {
+                app.sendQuickReplies({
+                    title: "Please select valid time from below options",
+                    options: [
+                        {
+                            title: "09:00 AM",
+                            text: "9:00"
+                        },
+                        {
+                            title: "11:30 AM",
+                            text: "11:30"
+                        },
+                        {
+                            title: "01:30 PM",
+                            text: "13:30"
+                        },
+                        {
+                            title: "03:30 PM",
+                            text: "15:30"
+                        },
+                        {
+                            title: "06:30 PM",
+                            text: "18:30"
+                        },
+                        {
+                            title: "10:30 PM",
+                            text: "22:30"
+                        }
+                    ]
+                })
+            }
+        })
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

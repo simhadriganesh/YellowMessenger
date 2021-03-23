@@ -1,0 +1,37 @@
+return new Promise(resolve => {
+    app.log("===============================in payments validator==================================")
+
+    let option = app.data.message.toLowerCase()
+    app.log(option, "the option is :")
+    let paymentsArray = ['debit card', 'https://www.paypal.com/in/signin']
+    let flag = false
+    paymentsArray.forEach((item) => {
+        if (option.includes(item)) {
+            flag = true;
+        }
+    })
+    if (flag == true) {
+        return resolve({ success: true });
+    }
+    else {
+        return resolve({
+            success: false,
+            customHandler: () => {
+                app.sendQuickReplies({
+                    title: 'Please select a valid payment type',
+                    options: [
+                        {
+                            title: 'Debit card / Credit card',
+                            text: 'debit card'
+                        },
+                        {
+                            title: 'PayPal',
+                            text: 'https://www.paypal.com/in/signin'
+                        }
+                    ]
+                })
+            }
+        })
+
+    }
+});

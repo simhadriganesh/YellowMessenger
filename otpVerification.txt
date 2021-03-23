@@ -1,0 +1,48 @@
+return new Promise(async resolve => {
+    // Your logic goes here
+
+    app.log("=====================in OTP verification=========================");
+    //let otp = app.context.steps['otp'];
+    let otp = app.data.message
+    await app.memory.get('detailsData')
+        .then((value) => {
+            app.log(value,"The value is : ")
+             app.executeApi('opt_verification', { otp: otp, sessionid: value }).then((response) => {
+                //app.log(response, 'response')
+                app.log(response.statusCode,"The status code is : ")
+                if (response.statusCode != 200) {
+                    app.log("in not equal to 200")
+                    app.sendTextMessage("api not suceess")
+                    return resolve();
+                }
+                else if (response.statusCode == 400) {
+                    app.log(" equal to 400")
+                     app.sendTextMessage("OTP mismatched")
+                    // let close = "close";
+                    // return resolve(close)
+                    return resolve();
+                 }
+                else if (response.statusCode == 200) {
+                    app.log(" equal to 200")
+                    app.sendTextMessage("OTP verification is successfull")
+                    // let bodyData = JSON.parse(response.body);
+                    // app.log(bodyData, "bodydata")
+                    // app.log(bodyData.Details, "body details :")
+                    // //app.sendTextMessage("The body details is " + bodyData.Details)
+                    // app.memory.set('detailsData', { 'Details': bodyData.Details })
+                    return resolve();
+
+                }
+
+            }).catch(error => {
+                app.log(error.message, "ERROR FROM EXECUTE API");
+                return app.sendTextMessage("Invalid OTP \nPlease enter a valid OTP.")
+                //return resolve({ 'success': false });
+                resolve()
+            });
+        })
+        .catch((error) => {
+            app.log(error,"The error is : ")
+        });
+    app.log(otp, "otp is : ")
+});

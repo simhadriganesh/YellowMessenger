@@ -1,0 +1,86 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    // let data = app.context.steps['dispalysignupform']
+    let data=app.data.message;
+    // app.sendTextMessage(data)
+    let info=JSON.parse(data)
+    let username = info.event.data.userName;
+    let cust_password = info.event.data.password;
+    let flag=1;
+    app.log(cust_password)
+    app.log(username)
+    
+    // app.sendTextMessage(info.event.data.userName)
+
+    
+    app.sendTextMessage(info.date)
+    app.dataStore.search({
+        table: 'customer_details',
+        body: {
+            "query": {
+                "match": {
+                    "username": username                   
+                }
+            }
+        }
+    }).then((customer_details) => {
+        app.log(customer_details)
+        let customer_info = customer_details.hits.hits;
+        app.log(customer_info)
+        app.log(customer_info[0]._source)
+        app.log(customer_info[0]._source.name)
+        app.log(customer_info[0]._source.password,"password===")
+        if (customer_info.length==1){
+            let dbPasssword = customer_info[0]._source.password;
+            app.log(dbPasssword+"=="+cust_password)
+            if (dbPasssword == cust_password){
+                app.memory.set("activeUser",customer_info[0]._source.customer_id);
+                app.sendTextMessage("LOGIN successful").then(()=>{
+                    app.triggerIntent('start')
+                    // app.sendQuickReplies({
+                    //     title:'',
+                    //     options:[{
+                    //         title:'Menu',
+                    //         text:'start'
+                    //     }]
+                    // })
+                })
+
+            }
+            else{
+                return app.sendTextMessage("Inncorrect Password TRY AGAIN").then(()=>{
+                    app.triggerIntent('login')
+                })
+            }
+        }
+        else{
+            app.log('inside no user')
+            return app.sendTextMessage("NO USER Found").then(()=>{
+                app.sendQuickReplies({
+                    title:"for Create account",
+                    options:[{
+                        title:"Sign up",
+                        text:'signup'
+                    }]
+                })
+            });
+        }
+    }).catch((err)=>{
+        app.log('inside no user')
+        app.sendTextMessage("NO USER Found").then(() => {
+            app.sendQuickReplies({
+                title: "for Create account",
+                options: [{
+                    title: "Sign up",
+                    text: 'signup'
+                },
+                {
+                    title: "Try Again",
+                    text: 'login'
+                }]
+            })
+        });
+    });
+    return resolve()
+    // app.log(data)
+});

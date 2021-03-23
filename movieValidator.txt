@@ -1,0 +1,55 @@
+// return new Promise(resolve => {
+//     app.log("===============================in movie validator==================================")
+
+//     let option = app.data.message
+//     let opt = option.toLowerCase()
+//     app.log(opt, "the option is :")
+//     //let moviesArray = ['sye ra narasimha reddy', 'sarileru neekevvaru', 'vakeel saab', 'bigil','raja rani','aaru']
+//     if (opt.includes('sye ra narasimha reddy') || opt.includes('sarileru neekevvaru') || opt.includes('vakeel saab') || opt.includes('bigil')) {
+//         return resolve({ success: true });
+//     }
+//     // if (moviesArray.includes(opt)) {
+//     //     return resolve({ success: true });
+//     // }
+
+//     else {
+//         app.sendTextMessage("Please select a valid movie").then(() => {
+//             return resolve({ success: false })
+//         })
+//     }
+//     //resolve()
+// });
+
+"======================================== using array ==================================="
+return new Promise(resolve => {
+    app.log("===============================in movie validator==================================")
+    app.log(app.prediction ,"the prediction is : ")
+    let option = app.data.message
+    let opt = option.toLowerCase()
+    let movieArr = app.context.steps["displaymovies2"]
+
+    app.log(opt, "the option is :")
+    let moviesArray = ['sye ra narasimha reddy', 'sarileru neekevvaru', 'vakeel saab', 'bigil', 'raja rani', 'aaru', 'rrr', 'colour photo', 'kick', 'legend', 'king', 'drusyam']
+    let flag = false
+    moviesArray.forEach((item) => {
+        if (opt.includes(item)) {
+            flag = true;
+        }
+    })
+    if (flag == true) {
+        return resolve({ success: true });
+    }
+    else {
+        return resolve({
+            success: false,
+            customHandler: () => {
+                app.sendTextMessage("Please select a valid movie").then(() => {
+                    //app.log(movieArr, "the movie arr is : ")
+                    app.sendCards(movieArr)
+                })
+            }
+        })
+    }
+});
+
+

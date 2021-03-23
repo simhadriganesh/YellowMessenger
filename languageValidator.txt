@@ -1,0 +1,65 @@
+return new Promise(resolve => {
+    app.log("============================in language validator============================")
+
+    let option = app.data.message
+    let opt = option.toLowerCase()
+    app.log(opt, "the option is :")
+    let languageArray = ['english', 'telugu', 'tamil', 'hindi']
+    let flag = false
+    languageArray.forEach((item) => {
+        if (opt.includes(item)) {
+            flag = true;
+        }
+    })
+    if (flag == true) {
+        app.log("in if")
+        return resolve({ success: true });
+    }
+    else {
+        return resolve({
+            success: false,
+            customHandler: () => {
+                app.sendQuickReplies({
+                    title: "Please select a valid language",
+                    options: [
+                        {
+                            title: "English",
+                            text: "English"
+                        },
+                        {
+                            title: "Telugu",
+                            text: "Telugu"
+                        },
+                        {
+                            title: "Tamil",
+                            text: "Tamil"
+                        },
+                        {
+                            title: "Hindi",
+                            text: "Hindi"
+                        }
+                    ]
+                }).then(() => {
+                    app.log(app.data, "data")
+
+                })
+            }
+        })
+
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

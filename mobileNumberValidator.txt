@@ -1,0 +1,18 @@
+return new Promise(resolve => {
+    // Your logic goes here
+    app.log("============================in mobile validator===============================")
+    let input = app.data.message.replace(/ /gi, '');
+    if (input.match(/\b(\+91(-)?|91(-)?|0(-)?)?[6,7,8,9][0-9]{9}\b/gi)) {
+        let phoneno = input.match(/\b(\+91(-)?|91(-)?|0(-)?)?[6,7,8,9][0-9]{9}\b/);
+
+        app.setStep('mobile', phoneno[0].substring(phoneno[0].length - 10));
+        return resolve();
+
+    }
+    else {
+        return resolve({
+            success: false,
+            question: `Please enter a valid 10 digit phone number.`
+        });
+    }
+});
